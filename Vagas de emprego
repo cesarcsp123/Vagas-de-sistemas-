@@ -1,0 +1,167 @@
+# sistema_vagas.py
+import datetime
+
+class Vaga:
+    id_counter = 1
+
+    def __init__(self, nome, faixa_salarial, requisitos, escolaridade_minima):
+        self.id = Vaga.id_counter
+        Vaga.id_counter += 1
+        self.nome = nome
+        self.faixa_salarial = faixa_salarial
+        self.requisitos = requisitos
+        self.escolaridade_minima = escolaridade_minima
+        self.data_criacao = datetime.date.today()
+        self.candidatos = []
+
+    def __str__(self):
+        return f"ID: {self.id}, Nome: {self.nome}, Candidatos: {len(self.candidatos)}"
+
+
+class Candidato:
+    def __init__(self, nome, pretensao_salarial, experiencia, escolaridade, objetivo):
+        self.nome = nome
+        self.pretensao_salarial = pretensao_salarial
+        self.experiencia = experiencia
+        self.escolaridade = escolaridade
+        self.objetivo = objetivo
+
+    def __str__(self):
+        return f"Nome: {self.nome}, Escolaridade: {self.escolaridade}, Pretensão: {self.pretensao_salarial}"
+
+
+class Sistema:
+    def __init__(self):
+        self.vagas = []
+        self.candidatos = []
+
+    # CRUD Vagas
+    def criar_vaga(self, nome, faixa_salarial, requisitos, escolaridade_minima):
+        vaga = Vaga(nome, faixa_salarial, requisitos, escolaridade_minima)
+        self.vagas.append(vaga)
+        return vaga
+
+    def listar_vagas(self):
+        return self.vagas
+
+    def editar_vaga(self, vaga_id, nome=None, faixa_salarial=None, requisitos=None, escolaridade_minima=None):
+        vaga = self.buscar_vaga(vaga_id)
+        if vaga:
+            if nome: vaga.nome = nome
+            if faixa_salarial: vaga.faixa_salarial = faixa_salarial
+            if requisitos: vaga.requisitos = requisitos
+            if escolaridade_minima: vaga.escolaridade_minima = escolaridade_minima
+            return True
+        return False
+
+    def deletar_vaga(self, vaga_id):
+        vaga = self.buscar_vaga(vaga_id)
+        if vaga:
+            self.vagas.remove(vaga)
+            return True
+        return False
+
+    def buscar_vaga(self, vaga_id):
+        for v in self.vagas:
+            if v.id == vaga_id:
+                return v
+        return None
+
+    # CRUD Candidatos
+    def cadastrar_candidato(self, nome, pretensao_salarial, experiencia, escolaridade, objetivo):
+        candidato = Candidato(nome, pretensao_salarial, experiencia, escolaridade, objetivo)
+        self.candidatos.append(candidato)
+        return candidato
+
+    def listar_candidatos(self):
+        return self.candidatos
+
+    def candidatar_vaga(self, vaga_id, candidato_nome):
+        vaga = self.buscar_vaga(vaga_id)
+        candidato = next((c for c in self.candidatos if c.nome == candidato_nome), None)
+        if vaga and candidato:
+            vaga.candidatos.append(candidato)
+            return True
+        return False
+
+# Interface simples de terminal
+def menu():
+    sistema = Sistema()
+
+    while True:
+        print("\n=== Sistema de Vagas ===")
+        print("1. Criar vaga")
+        print("2. Editar vaga")
+        print("3. Deletar vaga")
+        print("4. Listar vagas")
+        print("5. Cadastrar candidato")
+        print("6. Listar candidatos")
+        print("7. Candidatar-se a vaga")
+        print("0. Sair")
+        escolha = input("Escolha uma opção: ")
+
+        if escolha == "1":
+            nome = input("Nome da vaga: ")
+            print("Faixas salariais: 1) Até 1.000 2) De 1.000 a 2.000 3) De 2.000 a 3.000 4) Acima de 3.000")
+            faixa = int(input("Escolha a faixa: "))
+            faixas = ["Até 1.000","De 1.000 a 2.000","De 2.000 a 3.000","Acima de 3.000"]
+            requisitos = input("Requisitos (separar por vírgula): ").split(",")
+            print("Escolaridades: 1) Ensino fundamental 2) Ensino médio 3) Tecnólogo 4) Ensino Superior 5) Pós/MBA/Mestrado 6) Doutorado")
+            esc = int(input("Escolha a escolaridade mínima: "))
+            escolaridades = ["Ensino fundamental","Ensino médio","Tecnólogo","Ensino Superior","Pós / MBA / Mestrado","Doutorado"]
+            sistema.criar_vaga(nome, faixas[faixa-1], [r.strip() for r in requisitos], escolaridades[esc-1])
+            print("Vaga criada com sucesso!")
+
+        elif escolha == "2":
+            for v in sistema.listar_vagas():
+                print(v)
+            vid = int(input("ID da vaga a editar: "))
+            nome = input("Novo nome (enter para manter): ")
+            sistema.editar_vaga(vid, nome=nome if nome else None)
+            print("Vaga editada!")
+
+        elif escolha == "3":
+            for v in sistema.listar_vagas():
+                print(v)
+            vid = int(input("ID da vaga a deletar: "))
+            if sistema.deletar_vaga(vid):
+                print("Vaga deletada!")
+            else:
+                print("Vaga não encontrada.")
+
+        elif escolha == "4":
+            for v in sistema.listar_vagas():
+                print(v)
+
+        elif escolha == "5":
+            nome = input("Nome: ")
+            pretensao = float(input("Pretensão salarial: "))
+            exp = input("Experiência: ")
+            print("Escolaridades: 1) Ensino fundamental 2) Ensino médio 3) Tecnólogo 4) Ensino Superior 5) Pós/MBA/Mestrado 6) Doutorado")
+            esc = int(input("Escolha escolaridade: "))
+            objetivo = input("Objetivo: ")
+            escolaridades = ["Ensino fundamental","Ensino médio","Tecnólogo","Ensino Superior","Pós / MBA / Mestrado","Doutorado"]
+            sistema.cadastrar_candidato(nome, pretensao, exp, escolaridades[esc-1], objetivo)
+            print("Candidato cadastrado!")
+
+        elif escolha == "6":
+            for c in sistema.listar_candidatos():
+                print(c)
+
+        elif escolha == "7":
+            for v in sistema.listar_vagas():
+                print(v)
+            vid = int(input("ID da vaga: "))
+            nome = input("Nome do candidato: ")
+            if sistema.candidatar_vaga(vid, nome):
+                print("Candidato inscrito na vaga!")
+            else:
+                print("Vaga ou candidato não encontrados.")
+
+        elif escolha == "0":
+            break
+        else:
+            print("Opção inválida!")
+
+if __name__ == "__main__":
+    menu()
